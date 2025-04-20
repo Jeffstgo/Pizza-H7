@@ -1,18 +1,18 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
 
 const LoginPage = () => {
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [form, setForm] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
+  const { login } = useUser();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!form.email || !form.password) {
@@ -20,12 +20,12 @@ const LoginPage = () => {
       return;
     }
 
-    if (form.password.length < 6) {
-      setMessage("La contraseña debe tener al menos 6 caracteres.");
-      return;
+    const result = await login(form);
+    if (result.success) {
+      navigate("/");
+    } else {
+      setMessage(result.message || "Error al iniciar sesión.");
     }
-
-    setMessage("Inicio de sesión exitoso ✅");
   };
 
   return (

@@ -1,14 +1,41 @@
 import { useCart } from "../context/CartContext";
 import { useUser } from "../context/UserContext";
+import { useState } from "react";
 
 const Cart = () => {
   const { cartItems, increaseQuantity, decreaseQuantity, clearCart, total } =
     useCart();
   const { token } = useUser();
+  const [message, setMessage] = useState("");
+
+  const handleCheckout = async () => {
+    setMessage("");
+
+    try {
+      const res = await fetch("http://localhost:5000/api/checkouts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ cart: cartItems }),
+      });
+
+      if (!res.ok) throw new Error("No se pudo procesar la compra.");
+
+      setMessage("✅ ¡Compra realizada con éxito!");
+      clearCart();
+    } catch (err) {
+      setMessage("❌ Hubo un problema al procesar la compra.");
+    }
+  };
 
   return (
     <div className="container mt-4">
       <h2 className="mb-4">Carrito de Compras</h2>
+
+      {message && <div className="alert alert-info">{message}</div>}
+
       {cartItems.length === 0 ? (
         <p className="text-center">El carrito está vacío</p>
       ) : (
@@ -42,10 +69,14 @@ const Cart = () => {
           ))}
           <div className="text-end">
             <h4>Total: ${total.toFixed(2)}</h4>
-            <button onClick={clearCart} className="btn btn-danger mt-3 me-2">
+            <button onClick={clearCart} className="btn btn-danger me-2">
               Vaciar Carrito
             </button>
-            <button className="btn btn-primary mt-3" disabled={!token}>
+            <button
+              onClick={handleCheckout}
+              className="btn btn-primary"
+              disabled={!token}
+            >
               Pagar
             </button>
           </div>

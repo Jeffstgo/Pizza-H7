@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
 
 const RegisterPage = () => {
   const [form, setForm] = useState({
@@ -6,14 +8,15 @@ const RegisterPage = () => {
     password: "",
     confirmPassword: "",
   });
-
   const [message, setMessage] = useState("");
+  const { register } = useUser();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!form.email || !form.password || !form.confirmPassword) {
@@ -31,7 +34,16 @@ const RegisterPage = () => {
       return;
     }
 
-    setMessage("Registro exitoso ✅");
+    const result = await register({
+      email: form.email,
+      password: form.password,
+    });
+
+    if (result.success) {
+      navigate("/");
+    } else {
+      setMessage(result.message || "Error al registrarse.");
+    }
   };
 
   return (
